@@ -24,27 +24,15 @@ def zero_matrix(n):
     for i in range(n):
         matrix.append([0]*n)
     return matrix
-def read_input():
-    hex=[]
-    dump = os.popen("xxd inputfile.txt").read()
-    dump = dump.split('\n')
-    dump = list(filter(('').__ne__, dump))
-    for row in dump:
-        row = row.split(' ')
-        row.pop()
-        row.pop(0)
-        row = list(filter(('').__ne__, row))
-        hex.append(row)
+def read_input_pad():
+    f = open("inputfile.txt", "r")
+    line = f.read()
+    line.strip()
+    extra_bytes = 16 - len(line)%16
+    for i in range(extra_bytes):
+        line = line + hex(extra_bytes).split('x')[-1]
+    return line
 
-    return hex
-
-def padding(hex):
-    # first pad if total bytes less than 16
-    last_row = hex[len(hex)-1]
-    total_bytes = int(sum(len(i) for i in last_row)/2)
-    missing_bytes = 16 - total_bytes
-
-    return
 
 def print_matrix(matrix):
     for row in matrix:
@@ -64,8 +52,6 @@ def shift_rows(matrix):
 
 def main():
 
-    hex = read_input()
-    hex = padding(hex)
-
-
+    hex = read_input_pad()
+    print(hex)
 main()
