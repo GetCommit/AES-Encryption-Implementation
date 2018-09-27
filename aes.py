@@ -209,6 +209,12 @@ def key_expansion(key):
         all_keys.append(new_round_key)
     return all_keys
 
+def addRoundKey(roundKey, sixteen):
+    result = []
+    for i in range(0, len(sixteen)):
+        result.append(xorLists(roundKey[i], sixteen[i]))
+    return result
+
 
 
 # -------- Main Method -------------
@@ -224,12 +230,7 @@ def main():
     key = split_key(key)
     # expanded the key
     # print(key_expansion(key))
-    print_matrix(key_expansion(key))
-
-    col = [0xb3,0x6e,0xcd,0xb7]
-    round_constant = [0x01,0x00,0x00,0x00]
-    print(xorLists(col,round_constant))
-
+    roundKeys = key_expansion(key)
 
     # perform encoding for each 16 bytes
     for sixteen in hex:
@@ -253,6 +254,9 @@ def main():
 
         # mix columns
         matrix = mix_columns_encrypt(matrix)
+
+        #add round key
+        matrix = addRoundKey(roundKeys[0], matrix)
 
 if __name__ == "__main__":
   main()
