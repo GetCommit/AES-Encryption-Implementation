@@ -74,17 +74,23 @@ def sub_bytes_encrypt(matrix):
             new_matrix[i][j] = tables.Sbox[x][y]
     return new_matrix
 
-#todo
+#opposite of sub_bytes_encrypt
 def sub_bytes_decrypt(matrix):
-    new_matrix = zero_matrix(len(matrix))
+    new_list = []
 
     for i in range(len(matrix)):
-        for j in range(len(matrix[0])):
+        for j in range(len(matrix[i])):
+            fourBytes = []
             element = matrix[i][j]
-            x = int(element[0])
-            y = int(element[1])
-            new_matrix[i][j] = tables.Sbox[x][y]
-    return new_matrix
+            #need to scan through the sub byte table in search of the target byte
+            for row in tables.Sbox:
+                if element in row:
+                    x = tables.Sbox.index(row)
+                    y = row.index(element)
+                    new_list.append(str(x) + str(y))
+                    break
+
+    return new_list
 
 def shift_rows_encrypt(matrix):
     for i in range(len(matrix)):
@@ -141,15 +147,19 @@ def main():
         # subbytes:
         matrix = sub_bytes_encrypt(matrix)
 
+        # sub_bytes_decrypt
+        # listOfBytes = sub_bytes_decrypt(matrix)
+        # sub_bytes_decrypt(listOfBytes)
+
         # shiftRows
         matrix = shift_rows_encrypt(matrix)
-        
+
         # decrypt shift
         # matrix = shift_rows_decrypt(matrix)
 
 
         # mix columns
-        # matrix = mix_columns_encrypt(matrix)
+        matrix = mix_columns_encrypt(matrix)
 
 if __name__ == "__main__":
   main()
