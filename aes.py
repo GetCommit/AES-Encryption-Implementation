@@ -63,7 +63,7 @@ def splitting_padding(hex):
     return hex2
 
 
-def sub_bytes(matrix):
+def sub_bytes_encrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
 
     for i in range(len(matrix)):
@@ -74,14 +74,35 @@ def sub_bytes(matrix):
             new_matrix[i][j] = tables.Sbox[x][y]
     return new_matrix
 
-def shift_rows(matrix):
+#todo
+def sub_bytes_decrypt(matrix):
+    new_matrix = zero_matrix(len(matrix))
+
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            element = matrix[i][j]
+            x = int(element[0])
+            y = int(element[1])
+            new_matrix[i][j] = tables.Sbox[x][y]
+    return new_matrix
+
+def shift_rows_encrypt(matrix):
     for i in range(len(matrix)):
         row = matrix[i]
         row = row[i:]+row[0:i]
         matrix[i] = row
     return matrix
 
-def mix_columns(matrix):
+#opposite of the above method, i have 0 idea how this works,
+#i ripped it from online, can anyone explain this to me?
+def shift_rows_decrypt(matrix):
+    for i in range(len(matrix)):
+        row = matrix[i]
+        row[:] = row[-i:] + row[:-i]
+        matrix[i] = row
+    return matrix
+
+def mix_columns_encrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
     galois = tables.galois
 
@@ -118,14 +139,17 @@ def main():
         matrix = to_matrix(sixteen, 4)
 
         # subbytes:
-        matrix = sub_bytes(matrix)
+        matrix = sub_bytes_encrypt(matrix)
 
         # shiftRows
-        matrix = shift_rows(matrix)
+        matrix = shift_rows_encrypt(matrix)
+        
+        # decrypt shift
+        # matrix = shift_rows_decrypt(matrix)
 
 
         # mix columns
-        matrix = mix_columns(matrix)
+        # matrix = mix_columns_encrypt(matrix)
 
 if __name__ == "__main__":
   main()
