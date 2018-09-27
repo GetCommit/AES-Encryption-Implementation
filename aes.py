@@ -32,6 +32,13 @@ def to_matrix(l, n):
 
     return matrix
 
+def xorLists(a, b):
+    c = []
+    for i in range(0, len(a)):
+        c.append(int(a[i]) ^ int(b[i]))
+
+    return c
+
 # ------------- Above are Helper Functions----------
 
 
@@ -180,8 +187,26 @@ def key_expansion(key):
     for i in range(1, rounds+1):
         previous_key = all_keys[i - 1]
         last_col = [previous_key[len(previous_key)-1][3], previous_key[len(previous_key)-1][0], previous_key[len(previous_key)-1][1], previous_key[len(previous_key)-1][2]]
-        print(last_col)
+        #map with sub table
+        for j in range(0, len(last_col)):
+            last_col[j] = tables.Sbox[int(last_col[j])]
 
+        #xor with round constant
+        round_constant = [i, 0 , 0, 0]
+
+        last_col = xorLists(last_col, round_constant)
+
+        new_col = xorLists(last_col, previous_key[0])
+
+        # first_col = xorLists(previous_key[0], last_col)
+
+
+        new_round_key = [new_col]
+        for j in range(1, len(previous_key)):
+            current_col = xorLists(previous_key[j], new_round_key[j-1])
+            new_round_key.append(current_col)
+
+        all_keys.append(new_round_key)
     return all_keys
 
 
@@ -198,7 +223,13 @@ def main():
     key = read_key_input()
     key = split_key(key)
     # expanded the key
-    print(key_expansion(key))
+    # print(key_expansion(key))
+    print_matrix(key_expansion(key))
+
+    col = [0xb3,0x6e,0xcd,0xb7]
+    round_constant = [0x01,0x00,0x00,0x00]
+    print(xorLists(col,round_constant))
+
 
     # perform encoding for each 16 bytes
     for sixteen in hex:
