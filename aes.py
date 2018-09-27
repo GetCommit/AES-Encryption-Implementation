@@ -16,7 +16,20 @@ def print_matrix(matrix):
     return
 
 def to_matrix(l, n):
-    matrix = [l[i:i + n] for i in range(0, len(l), n)]
+    row = n
+    col = int(len(l)/n)
+
+    # zero matrix
+    matrix = []
+    for i in range(row):
+        matrix.append([0]*col)
+
+    idx = 0
+    for j in range(col):
+        for i in range(row):
+            matrix[i][j] = l[idx]
+            idx += 1
+
     return matrix
 
 # ------------- Above are Helper Functions----------
@@ -35,6 +48,22 @@ def read_input():
         hex.append(row)
 
     return hex
+
+def read_key_input():
+    key=[]
+    dump = os.popen("xxd key").read()
+    dump = dump.split('\n')
+    dump = list(filter(('').__ne__, dump))
+    for row in dump:
+        row = row.split(' ')
+        row.pop()
+        row.pop(0)
+        row = list(filter(('').__ne__, row))
+        key += (row)
+
+
+    return key
+
 
 def splitting_padding(hex):
     hex2 = []
@@ -62,6 +91,14 @@ def splitting_padding(hex):
 
     return hex2
 
+def split_key(key):
+    new_key = []
+    for k in key:
+        new_key.append(k[0:2])
+        new_key.append(k[2:])
+
+    new_key = to_matrix(new_key, 4)
+    return new_key
 
 def sub_bytes_encrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
@@ -126,6 +163,28 @@ def mix_columns_encrypt(matrix):
 
     return new_matrix
 
+def key_expansion(key):
+    all_keys = [key]
+
+    bits = len(key)*len(key[0])*8
+    if bits is 128:
+        rounds = 10
+    elif bits is 192:
+        rounds = 12
+    elif bits is 256:
+        rounds = 14
+    else:
+        print("error")
+        return
+
+    for i in range(1, rounds+1):
+        previous_key = all_keys[i - 1]
+        last_col = [previous_key[len(previous_key)-1][3], previous_key[len(previous_key)-1][0], previous_key[len(previous_key)-1][1], previous_key[len(previous_key)-1][2]]
+        print(last_col)
+
+    return all_keys
+
+
 
 # -------- Main Method -------------
 def main():
@@ -133,8 +192,13 @@ def main():
     # input the data and padding it.
     hex = read_input()
     hex = splitting_padding(hex)
-    print(hex)
 
+    # input the key
+    # Checking if the key is 
+    key = read_key_input()
+    key = split_key(key)
+    # expanded the key
+    print(key_expansion(key))
 
     # perform encoding for each 16 bytes
     for sixteen in hex:
