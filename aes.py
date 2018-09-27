@@ -24,7 +24,7 @@ def to_matrix(l, n):
 
 def read_input():
     hex=[]
-    dump = os.popen("xxd inputfile.txt").read()
+    dump = os.popen("xxd input").read()
     dump = dump.split('\n')
     dump = list(filter(('').__ne__, dump))
     for row in dump:
@@ -69,9 +69,9 @@ def sub_bytes_encrypt(matrix):
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             element = matrix[i][j]
-            x = int(element[0])
-            y = int(element[1])
-            new_matrix[i][j] = tables.Sbox[x][y]
+            idx = int(element)
+
+            new_matrix[i][j] = tables.Sbox[idx]
     return new_matrix
 
 #opposite of sub_bytes_encrypt
@@ -84,13 +84,8 @@ def sub_bytes_decrypt(matrix):
             fourBytes = []
             element = matrix[i][j]
             #need to scan through the sub byte table in search of the target byte
-            for row in tables.Sbox:
-                if element in row:
-                    x = tables.Sbox.index(row)
-                    y = row.index(element)
-                    new_list.append(str(x) + str(y))
-                    break
-
+            idx = tables.Sbox.index(element)
+            new_list.append(str(hex(idx)))
     return new_list
 
 def shift_rows_encrypt(matrix):
@@ -138,6 +133,8 @@ def main():
     # input the data and padding it.
     hex = read_input()
     hex = splitting_padding(hex)
+    print(hex)
+
 
     # perform encoding for each 16 bytes
     for sixteen in hex:
