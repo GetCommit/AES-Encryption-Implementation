@@ -75,6 +75,7 @@ def sub_bytes_encrypt(matrix):
     return new_matrix
 
 #opposite of sub_bytes_encrypt
+#this method returns a list of consecutive bytes
 def sub_bytes_decrypt(matrix):
     new_list = []
 
