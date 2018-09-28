@@ -1,4 +1,5 @@
 import os
+import sys
 from tables import *
 
 tables = tables()
@@ -215,11 +216,31 @@ def addRoundKey(roundKey, sixteen):
         result.append(xorLists(roundKey[i], sixteen[i]))
     return result
 
+def readArguments():
+    arguments = {}
+
+    #capture keysize
+    arguments["keysize"] = sys.argv[sys.argv.index("--keysize") + 1]
+
+    #capture keyfile
+    arguments["keyfile"] = sys.argv[sys.argv.index("--keyfile") + 1]
+
+    #capture input file
+    arguments["inputfile"] = sys.argv[sys.argv.index("--inputfile") + 1]
+
+    #capture output file
+    arguments["outputfile"] = sys.argv[sys.argv.index("--outputfile") + 1]
+    #capture mode
+    arguments["mode"] = sys.argv[sys.argv.index("--mode") + 1]
+
+    return arguments
+
 
 
 # -------- Main Method -------------
 def main():
-
+    arguments = readArguments()
+    print(arguments)
     # input the data and padding it.
     hex = read_input()
     hex = splitting_padding(hex)
