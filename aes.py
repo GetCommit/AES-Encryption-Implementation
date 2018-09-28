@@ -219,8 +219,8 @@ def addRoundKey(roundKey, sixteen):
 def readArguments():
     arguments = {}
 
-    #capture keysize
-    arguments["keysize"] = sys.argv[sys.argv.index("--keysize") + 1]
+    #capture keysize, turn into int
+    arguments["keysize"] = int(sys.argv[sys.argv.index("--keysize") + 1])
 
     #capture keyfile
     arguments["keyfile"] = sys.argv[sys.argv.index("--keyfile") + 1]
