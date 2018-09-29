@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 from tables import *
 
 tables = tables()
@@ -125,8 +126,7 @@ def sub_bytes_encrypt(matrix):
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             element = matrix[i][j]
-            idx = int(element)
-
+            idx = int(element, 16)
             new_matrix[i][j] = tables.Sbox[idx]
     return new_matrix
 
@@ -182,54 +182,121 @@ def mix_columns_encrypt(matrix):
 
     return new_matrix
 
-def key_expansion(key):
-    all_keys = [key]
+def rot_word(l):
+    l = [l[1], l[2], l[3], l[0]]
+    return l
+def subword(l):
+    for i in range(len(l)):
+        l[i] = tables.Sbox[int(l[i])]
 
-    bits = len(key)*len(key[0])*8
-    if bits is 128:
-        rounds = 10
-    elif bits is 192:
-        rounds = 12
-    elif bits is 256:
-        rounds = 14
+    return l
+
+def rcon(i):
+
+    round_constant = [i, 0, 0, 0]
+
+    return round_constant
+
+
+def key_expansion2(key, key_size):
+    for i in range(len(key)):
+        for j in range(len(key[0])):
+            key[i][j] = int(key[i][j], 16)
+    expanded_key = list(key)
+    if(key_size == 128):
+        nk = 4
+        round = 10
+    elif(key_size == 192):
+        nk = 6
+        round = 12
     else:
-        print("error")
-        return
+        nk = 8
+        round = 14
 
-    for i in range(1, rounds+1):
-        previous_key = all_keys[i - 1]
-        last_col = [previous_key[len(previous_key)-1][3], previous_key[len(previous_key)-1][0], previous_key[len(previous_key)-1][1], previous_key[len(previous_key)-1][2]]
-        #map with sub table
-        for j in range(0, len(last_col)):
-            last_col[j] = tables.Sbox[int(last_col[j])]
+    i = nk
+    while(i < 4*(round+1)):
+        temp = [expanded_key[0][i-1], expanded_key[1][i-1], expanded_key[2][i-1], expanded_key[3][i-1]]
+        if(i%nk == 0):
+            temp = xorLists (subword(rot_word(temp)), rcon(i/nk))
+        elif (nk > 6 and i%nk == 4):
+            temp = subword(temp)
 
-        #xor with round constant
-        round_constant = [i, 0, 0, 0]
+        wi_sub_nk = [expanded_key[0][i-nk], expanded_key[1][i-nk], expanded_key[2][i-nk], expanded_key[3][i-nk]]
+        wi = xorLists(wi_sub_nk, temp)
+        print(wi ,':', i)
+        # append to expanded_key
+        for idx in range(len(expanded_key)):
+            expanded_key[idx].append(wi[idx])
+        i += 1
 
-        last_col = xorLists(last_col, round_constant)
 
-        new_col = xorLists(last_col, col_by_idx(previous_key, 0)) # needs to fix
+    return expanded_key
 
-        # new_round_key = [new_col]
-        # for j in range(1, len(previous_key)):
-        #     current_col = xorLists(previous_key[j], new_round_key[j-1])
-        #     new_round_key.append(current_col)
+def split_key(expanded_key):
+    all_keys = []
 
-        # all_keys.append(new_round_key)
-
-        new_round_key = [[], [], [], []]
-        for j in range(len(new_col)):
-            new_round_key[j].append(new_col[j])
-
-        for j in range(1, len(previous_key[0])):
-             current_col = xorLists(col_by_idx(previous_key, j), col_by_idx(new_round_key, j-1))
-
-             for k in range(len(new_round_key)):
-                new_round_key[k].append(current_col[k])
-
-        all_keys.append(new_round_key)
+    for j in range(0, len(expanded_key[0]), 4):
+        key = []
+        for i in range(len(expanded_key)):
+            key.append(expanded_key[i][j:j+4])
+        all_keys.append(key)
 
     return all_keys
+
+
+# def key_expansion(key):
+#     # str hex to int
+#     for i in range(len(key)):
+#         for j in range(len(key[0])):
+#             key[i][j] = int(key[i][j], 16)
+
+#     all_keys = [key]
+
+#     bits = len(key)*len(key[0])*8
+#     if bits is 128:
+#         rounds = 10
+#     elif bits is 192:
+#         rounds = 12
+#     elif bits is 256:
+#         rounds = 14
+#     else:
+#         print("error")
+#         return
+
+#     for i in range(1, rounds+1):
+#         previous_key = all_keys[i - 1]
+#         last_col = [previous_key[len(previous_key)-1][3], previous_key[len(previous_key)-1][0], previous_key[len(previous_key)-1][1], previous_key[len(previous_key)-1][2]]
+#         #map with sub table
+#         for j in range(0, len(last_col)):
+#             last_col[j] = tables.Sbox[last_col[j]]
+
+#         #xor with round constant
+#         round_constant = [i, 0, 0, 0]
+
+#         last_col = xorLists(last_col, round_constant)
+
+#         new_col = xorLists(last_col, col_by_idx(previous_key, 0)) # needs to fix
+
+#         # new_round_key = [new_col]
+#         # for j in range(1, len(previous_key)):
+#         #     current_col = xorLists(previous_key[j], new_round_key[j-1])
+#         #     new_round_key.append(current_col)
+
+#         # all_keys.append(new_round_key)
+
+#         new_round_key = [[], [], [], []]
+#         for j in range(len(new_col)):
+#             new_round_key[j].append(new_col[j])
+
+#         for j in range(1, len(previous_key[0])):
+#              current_col = xorLists(col_by_idx(previous_key, j), col_by_idx(new_round_key, j-1))
+
+#              for k in range(len(new_round_key)):
+#                 new_round_key[k].append(current_col[k])
+
+#         all_keys.append(new_round_key)
+
+#     return all_keys
 
 def addRoundKey(roundKey, sixteen):
     result = []
@@ -266,15 +333,28 @@ def main():
     hex = read_input()
     hex = splitting_padding(hex)
 
+    # mock the hex 
+    hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
+
     # input the key
     # Checking if the key is 
     key = read_key_input()
     key = split_key(key)
-    # expanded the key
-    # print(key_expansion(key))
-    roundKeys = key_expansion(key)
 
-    round_numbers = len(roundKeys)
+    # mock the keys
+    key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
+
+    # expanded the key
+    key_size = 128
+    expanded_key = key_expansion2(key, 128)
+
+    # split the key
+    all_keys = split_key(expanded_key)
+    # for key in all_keys:
+    #     print_matrix(key)
+    #     print('---------------------------')
+
+    round_numbers = len(expanded_key)
     # perform encoding for each 16 bytes
     for sixteen in hex:
 
@@ -297,10 +377,8 @@ def main():
             matrix = mix_columns_encrypt(matrix)
 
             #add round key
-            matrix = addRoundKey(roundKeys[num_round], matrix)
+            # matrix = addRoundKey(roundKeys[num_round], matrix)
 
-        matrix_to_hex(matrix)
-        print('==================')
 
 if __name__ == "__main__":
   main()
