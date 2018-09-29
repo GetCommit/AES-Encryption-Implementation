@@ -40,6 +40,14 @@ def xorLists(a, b):
 
     return c
 
+def col_by_idx(matrix, idx):
+    l = []
+    for i in range(len(matrix)):
+        l.append(matrix[i][idx])
+
+    return l
+
+
 # ------------- Above are Helper Functions----------
 
 
@@ -193,21 +201,31 @@ def key_expansion(key):
             last_col[j] = tables.Sbox[int(last_col[j])]
 
         #xor with round constant
-        round_constant = [i, 0 , 0, 0]
+        round_constant = [i, 0, 0, 0]
 
         last_col = xorLists(last_col, round_constant)
 
-        new_col = xorLists(last_col, previous_key[0])
+        new_col = xorLists(last_col, col_by_idx(previous_key, 0)) # needs to fix
 
-        # first_col = xorLists(previous_key[0], last_col)
+        # new_round_key = [new_col]
+        # for j in range(1, len(previous_key)):
+        #     current_col = xorLists(previous_key[j], new_round_key[j-1])
+        #     new_round_key.append(current_col)
 
+        # all_keys.append(new_round_key)
 
-        new_round_key = [new_col]
-        for j in range(1, len(previous_key)):
-            current_col = xorLists(previous_key[j], new_round_key[j-1])
-            new_round_key.append(current_col)
+        new_round_key = [[], [], [], []]
+        for j in range(len(new_col)):
+            new_round_key[j].append(new_col[j])
+
+        for j in range(1, len(previous_key[0])):
+             current_col = xorLists(col_by_idx(previous_key, j), col_by_idx(new_round_key, j-1))
+
+             for k in range(len(new_round_key)):
+                new_round_key[k].append(current_col[k])
 
         all_keys.append(new_round_key)
+
     return all_keys
 
 def addRoundKey(roundKey, sixteen):
@@ -239,8 +257,8 @@ def readArguments():
 
 # -------- Main Method -------------
 def main():
-    arguments = readArguments()
-    print(arguments)
+    # arguments = readArguments()
+    # print(arguments)
     # input the data and padding it.
     hex = read_input()
     hex = splitting_padding(hex)
@@ -252,6 +270,7 @@ def main():
     # expanded the key
     # print(key_expansion(key))
     roundKeys = key_expansion(key)
+    print(roundKeys)
 
     # perform encoding for each 16 bytes
     for sixteen in hex:
