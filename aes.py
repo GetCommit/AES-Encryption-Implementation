@@ -4,6 +4,7 @@ import math
 from tables import *
 
 tables = tables()
+rcon = []
 
 # ------------Helper functions-----------
 def zero_matrix(n):
@@ -37,7 +38,13 @@ def to_matrix(l, n):
 def xorLists(a, b):
     c = []
     for i in range(0, len(a)):
-        c.append(int(a[i]) ^ int(b[i]))
+        a2 = a[i]
+        b2 = b[i]
+        if(type(a2) is str):
+            a2 = int(a2, 16)
+        if(type(b2) is str):
+            b2 = int(b2, 16)
+        c.append(a2 ^ b2)
 
     return c
 
@@ -126,7 +133,10 @@ def sub_bytes_encrypt(matrix):
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             element = matrix[i][j]
-            idx = int(element, 16)
+            if(type(element) is str):
+                element = int(element, 16)
+
+            idx = element
             new_matrix[i][j] = tables.Sbox[idx]
     return new_matrix
 
@@ -192,10 +202,9 @@ def subword(l):
     return l
 
 def rcon(i):
+    l = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54]
 
-    round_constant = [i, 0, 0, 0]
-
-    return round_constant
+    return [l[i], 0 , 0, 0]
 
 
 def key_expansion2(key, key_size):
@@ -217,13 +226,12 @@ def key_expansion2(key, key_size):
     while(i < 4*(round+1)):
         temp = [expanded_key[0][i-1], expanded_key[1][i-1], expanded_key[2][i-1], expanded_key[3][i-1]]
         if(i%nk == 0):
-            temp = xorLists (subword(rot_word(temp)), rcon(i/nk))
+            temp = xorLists (subword(rot_word(temp)), rcon(int(i/nk)-1))
         elif (nk > 6 and i%nk == 4):
             temp = subword(temp)
 
         wi_sub_nk = [expanded_key[0][i-nk], expanded_key[1][i-nk], expanded_key[2][i-nk], expanded_key[3][i-nk]]
         wi = xorLists(wi_sub_nk, temp)
-        print(wi ,':', i)
         # append to expanded_key
         for idx in range(len(expanded_key)):
             expanded_key[idx].append(wi[idx])
@@ -340,6 +348,7 @@ def main():
     # Checking if the key is 
     key = read_key_input()
     key = split_key(key)
+    # split the bytes
 
     # mock the keys
     key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
@@ -354,14 +363,16 @@ def main():
     #     print_matrix(key)
     #     print('---------------------------')
 
-    round_numbers = len(expanded_key)
+    round_numbers = len(all_keys)
     # perform encoding for each 16 bytes
     for sixteen in hex:
 
-        for num_round in range(round_numbers):
+        matrix = to_matrix(sixteen, 4)
+        matrix = addRoundKey(all_keys[0], matrix)
+
+        for num_round in range(1, round_numbers):
 
             # convert to a 4x4 2D list
-            matrix = to_matrix(sixteen, 4)
 
             # subbytes:
             matrix = sub_bytes_encrypt(matrix)
@@ -377,8 +388,9 @@ def main():
             matrix = mix_columns_encrypt(matrix)
 
             #add round key
-            # matrix = addRoundKey(roundKeys[num_round], matrix)
-
-
+            matrix = addRoundKey(all_keys[num_round], matrix)
+            print_matrix(matrix)
+            print('------------')
+        print('------------------------------------------------')
 if __name__ == "__main__":
   main()
