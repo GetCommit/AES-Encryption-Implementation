@@ -47,7 +47,10 @@ def col_by_idx(matrix, idx):
 
     return l
 
-
+def matrix_to_hex(matrix):
+    for row in matrix:
+        for element in row:
+            print(hex(element))
 # ------------- Above are Helper Functions----------
 
 
@@ -270,33 +273,34 @@ def main():
     # expanded the key
     # print(key_expansion(key))
     roundKeys = key_expansion(key)
-    print(roundKeys)
 
+    round_numbers = len(roundKeys)
     # perform encoding for each 16 bytes
     for sixteen in hex:
 
-        # convert to a 4x4 2D list
-        matrix = to_matrix(sixteen, 4)
+        for num_round in range(round_numbers):
 
-        # subbytes:
-        matrix = sub_bytes_encrypt(matrix)
+            # convert to a 4x4 2D list
+            matrix = to_matrix(sixteen, 4)
 
-        # sub_bytes_decrypt
-        # listOfBytes = sub_bytes_decrypt(matrix)
-        # sub_bytes_decrypt(listOfBytes)
+            # subbytes:
+            matrix = sub_bytes_encrypt(matrix)
 
-        # shiftRows
-        matrix = shift_rows_encrypt(matrix)
+            # sub_bytes_decrypt
+            # listOfBytes = sub_bytes_decrypt(matrix)
+            # sub_bytes_decrypt(listOfBytes)
 
-        # decrypt shift
-        # matrix = shift_rows_decrypt(matrix)
+            # shiftRows
+            matrix = shift_rows_encrypt(matrix)
 
+            # mix columns
+            matrix = mix_columns_encrypt(matrix)
 
-        # mix columns
-        matrix = mix_columns_encrypt(matrix)
+            #add round key
+            matrix = addRoundKey(roundKeys[num_round], matrix)
 
-        #add round key
-        matrix = addRoundKey(roundKeys[0], matrix)
+        matrix_to_hex(matrix)
+        print('==================')
 
 if __name__ == "__main__":
   main()
