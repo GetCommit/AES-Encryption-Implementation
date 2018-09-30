@@ -176,23 +176,6 @@ def mix_columns_encrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
     galois = tables.galois
 
-    # matrix multiplication
-    # for row in galois:
-
-    #     for j in range(len(matrix[0])):
-    #         for i in range(len(matrix)):
-    #             element = matrix[i][j]
-    #             which_table = row[i]
-
-    #             if(which_table == 1):
-    #                 new_matrix[i][j] = element
-    #             elif(which_table == 2):
-    #                 table = tables.mul2
-    #                 new_matrix[i][j] = table[element]
-    #             else:
-    #                 table = tables.mul3
-    #                 new_matrix[i][j] = table[element]
-
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             # get the matrix column
@@ -210,6 +193,39 @@ def mix_columns_encrypt(matrix):
                     l.append(table[col[k]])
                 else:
                     table = tables.mul3
+                    l.append(table[col[k]])
+            final_value = l[0]
+            for z in range(1, len(l)):
+                final_value = final_value^l[z]
+            new_matrix[i][j] = final_value
+
+    return new_matrix
+
+def mix_columns_decrypt(matrix):
+    new_matrix = zero_matrix(len(matrix))
+    galois = tables.otherGalois
+
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            # get the matrix column
+            col = [matrix[0][j], matrix[1][j], matrix[2][j], matrix[3][j]]
+            gal = galois[i]
+
+            # get the product
+            l = []
+            for k in range(len(col)):
+                which_table = gal[k]
+                if(which_table == 9):
+                    table = tables.mul9
+                    l.append(table[col[k]])
+                elif(which_table == 11):
+                    table = tables.mul11
+                    l.append(table[col[k]])
+                elif(which_table == 13):
+                    table = tables.mul13
+                    l.append(table[col[k]])
+                else:
+                    table = tables.mul14
                     l.append(table[col[k]])
             final_value = l[0]
             for z in range(1, len(l)):
@@ -365,8 +381,39 @@ def encryption(hex, all_keys):
 
 
 def decryption(hex, all_keys):
+    round_numbers = len(all_keys)
+    decrypted_bytes = [] # store all the encrypted matrix
 
-    return
+    all_keys = list(reversed(all_keys))
+
+    for sixteen in hex:
+
+        matrix = to_matrix(sixteen, 4)
+        matrix = addRoundKey(all_keys[0], matrix)
+
+        for i in range(1, round_numbers - 1):
+
+            matrix = shift_rows_decrypt(matrix)
+
+            matrix = sub_bytes_decrypt(matrix)
+
+            matrix = addRoundKey(all_keys[i], matrix)
+
+            matrix = mix_columns_decrypt(matrix)
+
+
+        matrix = shift_rows_decrypt(matrix)
+
+        matrix = sub_bytes_decrypt(matrix)
+
+        matrix = addRoundKey(all_keys[i], matrix)
+
+        decrypted_bytes.append(matrix)
+
+    decrypted_bytes = flatten_bytes(decrypted_bytes)
+    print(decrypted_bytes)
+    decrypted_bytes = writeToFile(decrypted_bytes, "output")
+    print(decrypted_bytes)
 
 
 
@@ -407,7 +454,10 @@ def main():
     # for key in all_keys:
     #     print_matrix(key)
     #     print('---------------------------')
-    encryption(hex, all_keys)
+
+    hex = [['1c', '06', '0f', '4c', '9e', '7e', 'a8', 'd6', 'ca', '96', '1a', '2d', '64', 'c0', '5c', '18']]
+    # encryption(hex, all_keys)
+    decryption(hex, all_keys)
 
     
 if __name__ == "__main__":
