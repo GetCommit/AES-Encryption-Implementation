@@ -55,11 +55,12 @@ def col_by_idx(matrix, idx):
 
     return l
 
-def matrix_to_hex(matrix):
-    for row in matrix:
-        for element in row:
-            print(hex(element))
+# def matrix_to_hex(matrix):
+#     for row in matrix:
+#         for element in row:
+#             # print(hex(element))
 
+#     return
 # def split_keys_bytes(key):
 
 # ------------- Above are Helper Functions----------
@@ -74,6 +75,7 @@ def read_input(inputfile):
         row = row.split(' ')
         row.pop()
         row.pop(0)
+        row = row[0:row.index("")]
         row = list(filter(('').__ne__, row))
         hex.append(row)
 
@@ -88,6 +90,7 @@ def read_key_input(keyfile):
         row = row.split(' ')
         row.pop()
         row.pop(0)
+        row = row[0:row.index("")]
         row = list(filter(('').__ne__, row))
         key += (row)
 
@@ -255,7 +258,8 @@ def rcon(i):
 def key_expansion(key, key_size):
     for i in range(len(key)):
         for j in range(len(key[0])):
-            key[i][j] = int(key[i][j], 16)
+            if (type(key[i][j]) is str):
+                key[i][j] = int(key[i][j], 16)
     expanded_key = list(key)
     if(key_size == 128):
         nk = 4
@@ -388,11 +392,8 @@ def encryption(hex, all_keys, outputfile):
     encrypted_bytes = writeToFile(encrypted_bytes, outputfile)
 
 def decryption(hex, all_keys, outputfile):
-    # print(hex, all_keys, outputfile)
-    print(hex)
     round_numbers = len(all_keys)
     decrypted_bytes = [] # store all the encrypted matrix
-
     all_keys = list(reversed(all_keys))
 
     for sixteen in hex:
