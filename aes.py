@@ -65,9 +65,9 @@ def matrix_to_hex(matrix):
 # ------------- Above are Helper Functions----------
 
 
-def read_input():
+def read_input(inputfile):
     hex=[]
-    dump = os.popen("xxd input").read()
+    dump = os.popen("xxd " + inputfile).read()
     dump = dump.split('\n')
     dump = list(filter(('').__ne__, dump))
     for row in dump:
@@ -79,9 +79,9 @@ def read_input():
 
     return hex
 
-def read_key_input():
+def read_key_input(keyfile):
     key=[]
-    dump = os.popen("xxd key").read()
+    dump = os.popen("xxd " + keyfile).read()
     dump = dump.split('\n')
     dump = list(filter(('').__ne__, dump))
     for row in dump:
@@ -94,8 +94,7 @@ def read_key_input():
 
     return key
 
-
-def splitting_padding(hex):
+def splitting(hex):
     hex2 = []
     for row in hex:
         new_row = []
@@ -106,8 +105,9 @@ def splitting_padding(hex):
             else:
                 new_row.append(element)
         hex2.append(new_row)
+    return hex2
 
-    # first pad if total bytes less than 16
+def padding(hex2):
     last_row = hex2[len(hex2)-1]
     total_bytes = int(sum(len(element) for element in last_row)/2)
     missing_bytes = 16 - total_bytes
@@ -118,10 +118,10 @@ def splitting_padding(hex):
     else:
         for i in range(missing_bytes):
             hex_string = '{:02x}'.format(missing_bytes)
-            print(hex_string)
             hex2[len(hex2)-1].append(hex_string)
 
     return hex2
+
 
 def split_key_bytes(key):
     new_key = []
@@ -342,7 +342,7 @@ def flatten_bytes(encryted_bytes):
     return encryted_bytes_remove_padding
 
 def writeToFile(flatten_bytes, outputfile):
-    with open('hello', 'wb') as f:
+    with open(outputfile, 'wb') as f:
         f.write(bytearray(i for i in flatten_bytes))
 
 
@@ -357,7 +357,7 @@ def remove_pad(flatten_bytes):
     flatten_bytes = flatten_bytes[:len(flatten_bytes)-num_bytes_to_remove]
     return flatten_bytes
 
-def encryption(hex, all_keys):
+def encryption(hex, all_keys, outputfile):
 
     round_numbers = len(all_keys)
     encrypted_bytes = [] # store all the encrypted matrix
@@ -385,9 +385,11 @@ def encryption(hex, all_keys):
 
 
     encrypted_bytes = flatten_bytes(encrypted_bytes)
-    encrypted_bytes = writeToFile(encrypted_bytes, "output")
+    encrypted_bytes = writeToFile(encrypted_bytes, outputfile)
 
-def decryption(hex, all_keys):
+def decryption(hex, all_keys, outputfile):
+    # print(hex, all_keys, outputfile)
+    print(hex)
     round_numbers = len(all_keys)
     decrypted_bytes = [] # store all the encrypted matrix
 
@@ -417,21 +419,25 @@ def decryption(hex, all_keys):
         decrypted_bytes.append(matrix)
 
     decrypted_bytes = flatten_bytes(decrypted_bytes)
+
     decrypted_bytes = remove_pad(decrypted_bytes)
-    decrypted_bytes = writeToFile(decrypted_bytes, "output")
+    decrypted_bytes = writeToFile(decrypted_bytes, outputfile)
 
 
 
 # -------- Main Method -------------
 def main():
-    # arguments = readArguments()
+    arguments = readArguments()
     # print(arguments)
     # input the data and padding it.
-    hex = read_input()
+    hex = read_input(arguments["inputfile"])
     # file_size = obtain_file_size(hex)
-    hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF']]
+    # hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF']]
 
-    hex = splitting_padding(hex)
+    hex = splitting(hex)
+    if(arguments['mode'] == 'encrypt'):
+        hex = padding(hex)
+
 
     # # mock the hex 
     # hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
@@ -440,7 +446,7 @@ def main():
 
     # input the key
     # Checking if the key is 
-    key = read_key_input()
+    key = read_key_input(arguments["keyfile"])
 
     # split the bytes
     key = split_key_bytes(key)
@@ -451,7 +457,7 @@ def main():
     # key = [['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00']]
 
     # expanded the key
-    key_size = 256
+    key_size = arguments["keysize"]
     expanded_key = key_expansion(key, key_size)
 
     # split the key
@@ -459,13 +465,14 @@ def main():
     # for key in all_keys:
     #     print_matrix(key)
     #     print('---------------------------')
-    encryption(hex, all_keys)
+    if arguments["mode"] == "encrypt":
+        encryption(hex, all_keys, arguments["outputfile"])
 
 
-    # hex = [['1c', '06', '0f', '4c', '9e', '7e', 'a8', 'd6', 'ca', '96', '1a', '2d', '64', 'c0', '5c', '18'], ['1f', '78', '8f', 'e6', 'd8', '6c', '31', '75', '49', '69', '7f', 'bf', '0c', '07', 'fa', '43']]
-    # hex = [['66', 'e9', '4b', 'd4', 'ef', '8a', '2c', '3b', '88', '4c', 'fa', '59', 'ca', '34', '2b', '2e'], ['01', '43', 'db', '63', 'ee', '66', 'b0', 'cd', 'ff', '9f', '69', '91', '76', '80', '15', '1e']]
-    # encryption(hex, all_keys)
-    decryption(hex, all_keys)
+    elif arguments["mode"] == "decrypt":
+        # print("here", arguments)
+        decryption(hex, all_keys, arguments["outputfile"])
+
 
     
 if __name__ == "__main__":
