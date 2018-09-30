@@ -310,7 +310,7 @@ def obtain_file_size(hex):
 
     return total_bytes
 
-def remove_padding(encryted_bytes, file_size):
+def flatten_bytes(encryted_bytes, file_size):
     encryted_bytes_remove_padding = []
     for matrix in encryted_bytes:
         for j in range(len(matrix[0])):
@@ -318,7 +318,7 @@ def remove_padding(encryted_bytes, file_size):
                 encryted_bytes_remove_padding.append(matrix[i][j])
 
 
-    encryted_bytes_remove_padding = encryted_bytes_remove_padding[0:file_size]
+    # encryted_bytes_remove_padding = encryted_bytes_remove_padding[0:file_size]
 
     return encryted_bytes_remove_padding
 
@@ -387,7 +387,7 @@ def main():
         encryted_bytes.append(matrix)
 
 
-    encryted_bytes_remove_padding = remove_padding(encryted_bytes, file_size)
+    encryted_bytes_remove_padding = flatten_bytes(encryted_bytes, file_size)
     print(encryted_bytes_remove_padding)
 if __name__ == "__main__":
   main()
