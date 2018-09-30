@@ -175,20 +175,44 @@ def mix_columns_encrypt(matrix):
     galois = tables.galois
 
     # matrix multiplication
-    for row in galois:
-        for j in range(len(matrix[0])):
-            for i in range(len(matrix)):
-                element = matrix[i][j]
-                which_table = row[i]
+    # for row in galois:
 
+    #     for j in range(len(matrix[0])):
+    #         for i in range(len(matrix)):
+    #             element = matrix[i][j]
+    #             which_table = row[i]
+
+    #             if(which_table == 1):
+    #                 new_matrix[i][j] = element
+    #             elif(which_table == 2):
+    #                 table = tables.mul2
+    #                 new_matrix[i][j] = table[element]
+    #             else:
+    #                 table = tables.mul3
+    #                 new_matrix[i][j] = table[element]
+
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            # get the matrix column
+            col = [matrix[0][j], matrix[1][j], matrix[2][j], matrix[3][j]]
+            gal = galois[i]
+
+            # get the product
+            l = []
+            for k in range(len(col)):
+                which_table = gal[k]
                 if(which_table == 1):
-                    new_matrix[i][j] = element
+                    l.append(col[k])
                 elif(which_table == 2):
                     table = tables.mul2
-                    new_matrix[i][j] = table[element]
+                    l.append(table[col[k]])
                 else:
                     table = tables.mul3
-                    new_matrix[i][j] = table[element]
+                    l.append(table[col[k]])
+            final_value = l[0]
+            for z in range(1, len(l)):
+                final_value = final_value^l[z]
+            new_matrix[i][j] = final_value
 
     return new_matrix
 
@@ -207,7 +231,7 @@ def rcon(i):
     return [l[i], 0 , 0, 0]
 
 
-def key_expansion2(key, key_size):
+def key_expansion(key, key_size):
     for i in range(len(key)):
         for j in range(len(key[0])):
             key[i][j] = int(key[i][j], 16)
@@ -252,60 +276,6 @@ def split_key(expanded_key):
     return all_keys
 
 
-# def key_expansion(key):
-#     # str hex to int
-#     for i in range(len(key)):
-#         for j in range(len(key[0])):
-#             key[i][j] = int(key[i][j], 16)
-
-#     all_keys = [key]
-
-#     bits = len(key)*len(key[0])*8
-#     if bits is 128:
-#         rounds = 10
-#     elif bits is 192:
-#         rounds = 12
-#     elif bits is 256:
-#         rounds = 14
-#     else:
-#         print("error")
-#         return
-
-#     for i in range(1, rounds+1):
-#         previous_key = all_keys[i - 1]
-#         last_col = [previous_key[len(previous_key)-1][3], previous_key[len(previous_key)-1][0], previous_key[len(previous_key)-1][1], previous_key[len(previous_key)-1][2]]
-#         #map with sub table
-#         for j in range(0, len(last_col)):
-#             last_col[j] = tables.Sbox[last_col[j]]
-
-#         #xor with round constant
-#         round_constant = [i, 0, 0, 0]
-
-#         last_col = xorLists(last_col, round_constant)
-
-#         new_col = xorLists(last_col, col_by_idx(previous_key, 0)) # needs to fix
-
-#         # new_round_key = [new_col]
-#         # for j in range(1, len(previous_key)):
-#         #     current_col = xorLists(previous_key[j], new_round_key[j-1])
-#         #     new_round_key.append(current_col)
-
-#         # all_keys.append(new_round_key)
-
-#         new_round_key = [[], [], [], []]
-#         for j in range(len(new_col)):
-#             new_round_key[j].append(new_col[j])
-
-#         for j in range(1, len(previous_key[0])):
-#              current_col = xorLists(col_by_idx(previous_key, j), col_by_idx(new_round_key, j-1))
-
-#              for k in range(len(new_round_key)):
-#                 new_round_key[k].append(current_col[k])
-
-#         all_keys.append(new_round_key)
-
-#     return all_keys
-
 def addRoundKey(roundKey, sixteen):
     result = []
     for i in range(0, len(sixteen)):
@@ -335,27 +305,32 @@ def readArguments():
 
 # -------- Main Method -------------
 def main():
+    print(tables.mul3[191], 'HAHAHAHA')
     # arguments = readArguments()
     # print(arguments)
     # input the data and padding it.
     hex = read_input()
     hex = splitting_padding(hex)
 
-    # mock the hex 
-    hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
+    # # mock the hex 
+    # hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
+    hex = [['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
+    # hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
 
     # input the key
     # Checking if the key is 
     key = read_key_input()
     key = split_key(key)
+    print(key)
     # split the bytes
 
-    # mock the keys
-    key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
+    # # mock the keys
+    # key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
+    key = [['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00']]
 
     # expanded the key
     key_size = 128
-    expanded_key = key_expansion2(key, 128)
+    expanded_key = key_expansion(key, 128)
 
     # split the key
     all_keys = split_key(expanded_key)
@@ -372,25 +347,19 @@ def main():
 
         for num_round in range(1, round_numbers):
 
-            # convert to a 4x4 2D list
-
             # subbytes:
             matrix = sub_bytes_encrypt(matrix)
-
-            # sub_bytes_decrypt
-            # listOfBytes = sub_bytes_decrypt(matrix)
-            # sub_bytes_decrypt(listOfBytes)
 
             # shiftRows
             matrix = shift_rows_encrypt(matrix)
 
             # mix columns
-            matrix = mix_columns_encrypt(matrix)
+            if(num_round < round_numbers-1):
+                matrix = mix_columns_encrypt(matrix)
 
             #add round key
             matrix = addRoundKey(all_keys[num_round], matrix)
-            print_matrix(matrix)
-            print('------------')
+        print_matrix(matrix)
         print('------------------------------------------------')
 if __name__ == "__main__":
   main()
