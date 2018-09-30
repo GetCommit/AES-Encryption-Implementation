@@ -46,11 +46,3 @@ Again, our AES decryption follows close pseudo code from the NIST document.
 
 _______________________________________________________________________________________
 
-
-Ideas for each step:
-
-Shift rows: Not a big deal, shift rows accordingly to the index. This is a pretty common thing to find/learn how to do
-
-
-
-
