@@ -310,7 +310,7 @@ def obtain_file_size(hex):
 
     return total_bytes
 
-def flatten_bytes(encryted_bytes, file_size):
+def flatten_bytes(encryted_bytes):
     encryted_bytes_remove_padding = []
     for matrix in encryted_bytes:
         for j in range(len(matrix[0])):
@@ -322,6 +322,52 @@ def flatten_bytes(encryted_bytes, file_size):
 
     return encryted_bytes_remove_padding
 
+def writeToFile(flatten_bytes, outputfile):
+    with open('hello', 'wb') as f:
+        f.write(bytearray(i for i in flatten_bytes))
+
+
+    f.close()
+
+    return flatten_bytes
+
+def encryption(hex, all_keys):
+
+    round_numbers = len(all_keys)
+    encrypted_bytes = [] # store all the encrypted matrix
+    # perform encoding for each 16 bytes
+    for sixteen in hex:
+
+        matrix = to_matrix(sixteen, 4)
+        matrix = addRoundKey(all_keys[0], matrix)
+
+        for num_round in range(1, round_numbers):
+
+            # subbytes:
+            matrix = sub_bytes_encrypt(matrix)
+
+            # shiftRows
+            matrix = shift_rows_encrypt(matrix)
+
+            # mix columns
+            if(num_round < round_numbers-1):
+                matrix = mix_columns_encrypt(matrix)
+
+            #add round key
+            matrix = addRoundKey(all_keys[num_round], matrix)
+        encrypted_bytes.append(matrix)
+
+
+    encrypted_bytes = flatten_bytes(encrypted_bytes)
+    print(encrypted_bytes)
+    encrypted_bytes = writeToFile(encrypted_bytes, "output")
+    print(encrypted_bytes)
+
+
+def decryption(hex, all_keys):
+
+    return
+
 
 
 # -------- Main Method -------------
@@ -330,7 +376,7 @@ def main():
     # print(arguments)
     # input the data and padding it.
     hex = read_input()
-    file_size = obtain_file_size(hex)
+    # file_size = obtain_file_size(hex)
 
     hex = splitting_padding(hex)
 
@@ -361,34 +407,9 @@ def main():
     # for key in all_keys:
     #     print_matrix(key)
     #     print('---------------------------')
+    encryption(hex, all_keys)
 
-    round_numbers = len(all_keys)
-    encryted_bytes = [] # store all the encrypted matrix
-    # perform encoding for each 16 bytes
-    for sixteen in hex:
-
-        matrix = to_matrix(sixteen, 4)
-        matrix = addRoundKey(all_keys[0], matrix)
-
-        for num_round in range(1, round_numbers):
-
-            # subbytes:
-            matrix = sub_bytes_encrypt(matrix)
-
-            # shiftRows
-            matrix = shift_rows_encrypt(matrix)
-
-            # mix columns
-            if(num_round < round_numbers-1):
-                matrix = mix_columns_encrypt(matrix)
-
-            #add round key
-            matrix = addRoundKey(all_keys[num_round], matrix)
-        encryted_bytes.append(matrix)
-
-
-    encryted_bytes_remove_padding = flatten_bytes(encryted_bytes, file_size)
-    print(encryted_bytes_remove_padding)
+    
 if __name__ == "__main__":
   main()
 
