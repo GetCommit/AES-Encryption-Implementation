@@ -59,6 +59,9 @@ def matrix_to_hex(matrix):
     for row in matrix:
         for element in row:
             print(hex(element))
+
+# def split_keys_bytes(key):
+
 # ------------- Above are Helper Functions----------
 
 
@@ -118,12 +121,11 @@ def splitting_padding(hex):
 
     return hex2
 
-def split_key(key):
+def split_key_bytes(key):
     new_key = []
     for k in key:
         new_key.append(k[0:2])
         new_key.append(k[2:])
-
     new_key = to_matrix(new_key, 4)
     return new_key
 
@@ -301,36 +303,58 @@ def readArguments():
 
     return arguments
 
+def obtain_file_size(hex):
+    total_bytes = 0
+    for l in hex:
+        total_bytes += int(sum(len(element) for element in l)/2)
+
+    return total_bytes
+
+def remove_padding(encryted_bytes, file_size):
+    encryted_bytes_remove_padding = []
+    for matrix in encryted_bytes:
+        for j in range(len(matrix[0])):
+            for i in range(len(matrix)):
+                encryted_bytes_remove_padding.append(matrix[i][j])
+
+
+    encryted_bytes_remove_padding = encryted_bytes_remove_padding[0:file_size]
+
+    return encryted_bytes_remove_padding
+
 
 
 # -------- Main Method -------------
 def main():
-    print(tables.mul3[191], 'HAHAHAHA')
     # arguments = readArguments()
     # print(arguments)
     # input the data and padding it.
     hex = read_input()
+    file_size = obtain_file_size(hex)
+
     hex = splitting_padding(hex)
 
     # # mock the hex 
     # hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
-    hex = [['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
-    # hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
+    # hex = [['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
+    hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
 
     # input the key
     # Checking if the key is 
     key = read_key_input()
-    key = split_key(key)
-    print(key)
+
     # split the bytes
+    key = split_key_bytes(key)
+
+
 
     # # mock the keys
     # key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
-    key = [['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00']]
+    # key = [['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00']]
 
     # expanded the key
-    key_size = 128
-    expanded_key = key_expansion(key, 128)
+    key_size = 256
+    expanded_key = key_expansion(key, key_size)
 
     # split the key
     all_keys = split_key(expanded_key)
@@ -339,6 +363,7 @@ def main():
     #     print('---------------------------')
 
     round_numbers = len(all_keys)
+    encryted_bytes = [] # store all the encrypted matrix
     # perform encoding for each 16 bytes
     for sixteen in hex:
 
@@ -359,7 +384,16 @@ def main():
 
             #add round key
             matrix = addRoundKey(all_keys[num_round], matrix)
-        print_matrix(matrix)
-        print('------------------------------------------------')
+        encryted_bytes.append(matrix)
+
+
+    encryted_bytes_remove_padding = remove_padding(encryted_bytes, file_size)
+    print(encryted_bytes_remove_padding)
 if __name__ == "__main__":
   main()
+
+
+
+
+
+
