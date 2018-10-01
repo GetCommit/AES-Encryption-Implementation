@@ -1,3 +1,5 @@
+
+
 import os
 import sys
 import math
@@ -7,16 +9,20 @@ tables = tables()
 rcon = []
 
 # ------------Helper functions-----------
+
+
 def zero_matrix(n):
     matrix = []
     for i in range(n):
         matrix.append([0]*n)
     return matrix
 
+
 def print_matrix(matrix):
     for row in matrix:
         print(row)
     return
+
 
 def to_matrix(l, n):
     row = n
@@ -35,6 +41,7 @@ def to_matrix(l, n):
 
     return matrix
 
+
 def xorLists(a, b):
     c = []
     for i in range(0, len(a)):
@@ -47,6 +54,7 @@ def xorLists(a, b):
         c.append(a2 ^ b2)
 
     return c
+
 
 def col_by_idx(matrix, idx):
     l = []
@@ -67,7 +75,7 @@ def col_by_idx(matrix, idx):
 
 
 def read_input(inputfile):
-    hex=[]
+    hex = []
     dump = os.popen("xxd " + inputfile).read()
     dump = dump.split('\n')
     dump = list(filter(('').__ne__, dump))
@@ -81,8 +89,9 @@ def read_input(inputfile):
 
     return hex
 
+
 def read_key_input(keyfile):
-    key=[]
+    key = []
     dump = os.popen("xxd " + keyfile).read()
     dump = dump.split('\n')
     dump = list(filter(('').__ne__, dump))
@@ -93,9 +102,8 @@ def read_key_input(keyfile):
         row = row[0:row.index("")]
         row = list(filter(('').__ne__, row))
         key += (row)
-
-
     return key
+
 
 def splitting(hex):
     hex2 = []
@@ -109,6 +117,7 @@ def splitting(hex):
                 new_row.append(element)
         hex2.append(new_row)
     return hex2
+
 
 def padding(hex2):
     last_row = hex2[len(hex2)-1]
@@ -134,6 +143,7 @@ def split_key_bytes(key):
     new_key = to_matrix(new_key, 4)
     return new_key
 
+
 def sub_bytes_encrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
 
@@ -147,8 +157,9 @@ def sub_bytes_encrypt(matrix):
             new_matrix[i][j] = tables.Sbox[idx]
     return new_matrix
 
-#opposite of sub_bytes_encrypt
-#this method returns a list of consecutive bytes
+
+# opposite of sub_bytes_encrypt
+# this method returns a list of consecutive bytes
 def sub_bytes_decrypt(matrix):
     new_list = list(matrix)
 
@@ -156,11 +167,13 @@ def sub_bytes_decrypt(matrix):
         for j in range(len(matrix[i])):
             fourBytes = []
             element = matrix[i][j]
-            #need to scan through the sub byte table in search of the target byte
+            # need to scan through the sub byte
+            # table in search of the target byte
             idx = tables.Sbox.index(element)
             # new_list.append(str(hex(idx)))
             new_list[i][j] = idx
     return new_list
+
 
 def shift_rows_encrypt(matrix):
     for i in range(len(matrix)):
@@ -169,14 +182,14 @@ def shift_rows_encrypt(matrix):
         matrix[i] = row
     return matrix
 
-#opposite of the above method, i have 0 idea how this works,
-#i ripped it from online, can anyone explain this to me?
+
 def shift_rows_decrypt(matrix):
     for i in range(len(matrix)):
         row = matrix[i]
         row[:] = row[-i:] + row[:-i]
         matrix[i] = row
     return matrix
+
 
 def mix_columns_encrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
@@ -202,10 +215,11 @@ def mix_columns_encrypt(matrix):
                     l.append(table[col[k]])
             final_value = l[0]
             for z in range(1, len(l)):
-                final_value = final_value^l[z]
+                final_value = final_value ^ l[z]
             new_matrix[i][j] = final_value
 
     return new_matrix
+
 
 def mix_columns_decrypt(matrix):
     new_matrix = zero_matrix(len(matrix))
@@ -235,24 +249,28 @@ def mix_columns_decrypt(matrix):
                     l.append(table[col[k]])
             final_value = l[0]
             for z in range(1, len(l)):
-                final_value = final_value^l[z]
+                final_value = final_value ^ l[z]
             new_matrix[i][j] = final_value
 
     return new_matrix
 
+
 def rot_word(l):
     l = [l[1], l[2], l[3], l[0]]
     return l
+
+
 def subword(l):
     for i in range(len(l)):
         l[i] = tables.Sbox[int(l[i])]
 
     return l
 
+
 def rcon(i):
     l = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54]
 
-    return [l[i], 0 , 0, 0]
+    return [l[i], 0, 0, 0]
 
 
 def key_expansion(key, key_size):
@@ -273,21 +291,21 @@ def key_expansion(key, key_size):
 
     i = nk
     while(i < 4*(round+1)):
-        temp = [expanded_key[0][i-1], expanded_key[1][i-1], expanded_key[2][i-1], expanded_key[3][i-1]]
-        if(i%nk == 0):
-            temp = xorLists (subword(rot_word(temp)), rcon(int(i/nk)-1))
-        elif (nk > 6 and i%nk == 4):
+        temp = [expanded_key[0][i - 1], expanded_key[1][i - 1], expanded_key[2][i - 1], expanded_key[3][i - 1]]
+        if(i % nk == 0):
+            temp = xorLists(subword(rot_word(temp)), rcon(int(i / nk) - 1))
+        elif (nk > 6 and i % nk == 4):
             temp = subword(temp)
 
-        wi_sub_nk = [expanded_key[0][i-nk], expanded_key[1][i-nk], expanded_key[2][i-nk], expanded_key[3][i-nk]]
+        wi_sub_nk = [expanded_key[0][i-nk], expanded_key[1][i - nk], expanded_key[2][i - nk], expanded_key[3][i - nk]]
         wi = xorLists(wi_sub_nk, temp)
         # append to expanded_key
         for idx in range(len(expanded_key)):
             expanded_key[idx].append(wi[idx])
         i += 1
 
-
     return expanded_key
+
 
 def split_key(expanded_key):
     all_keys = []
@@ -307,24 +325,26 @@ def addRoundKey(roundKey, sixteen):
         result.append(xorLists(roundKey[i], sixteen[i]))
     return result
 
+
 def readArguments():
     arguments = {}
 
-    #capture keysize, turn into int
+    # capture keysize, turn into int
     arguments["keysize"] = int(sys.argv[sys.argv.index("--keysize") + 1])
 
-    #capture keyfile
+    # capture keyfile
     arguments["keyfile"] = sys.argv[sys.argv.index("--keyfile") + 1]
 
-    #capture input file
+    # capture input file
     arguments["inputfile"] = sys.argv[sys.argv.index("--inputfile") + 1]
 
-    #capture output file
+    # capture output file
     arguments["outputfile"] = sys.argv[sys.argv.index("--outputfile") + 1]
-    #capture mode
+    # capture mode
     arguments["mode"] = sys.argv[sys.argv.index("--mode") + 1]
 
     return arguments
+
 
 def obtain_file_size(hex):
     total_bytes = 0
@@ -333,6 +353,7 @@ def obtain_file_size(hex):
 
     return total_bytes
 
+
 def flatten_bytes(encryted_bytes):
     encryted_bytes_remove_padding = []
     for matrix in encryted_bytes:
@@ -340,19 +361,19 @@ def flatten_bytes(encryted_bytes):
             for i in range(len(matrix)):
                 encryted_bytes_remove_padding.append(matrix[i][j])
 
-
     # encryted_bytes_remove_padding = encryted_bytes_remove_padding[0:file_size]
 
     return encryted_bytes_remove_padding
+
 
 def writeToFile(flatten_bytes, outputfile):
     with open(outputfile, 'wb') as f:
         f.write(bytearray(i for i in flatten_bytes))
 
-
     f.close()
 
     return flatten_bytes
+
 
 def remove_pad(flatten_bytes):
 
@@ -361,10 +382,11 @@ def remove_pad(flatten_bytes):
     flatten_bytes = flatten_bytes[:len(flatten_bytes)-num_bytes_to_remove]
     return flatten_bytes
 
+
 def encryption(hex, all_keys, outputfile):
 
     round_numbers = len(all_keys)
-    encrypted_bytes = [] # store all the encrypted matrix
+    encrypted_bytes = []  # store all the encrypted matrix
     # perform encoding for each 16 bytes
     for sixteen in hex:
 
@@ -383,17 +405,17 @@ def encryption(hex, all_keys, outputfile):
             if(num_round < round_numbers-1):
                 matrix = mix_columns_encrypt(matrix)
 
-            #add round key
+            # add round key
             matrix = addRoundKey(all_keys[num_round], matrix)
         encrypted_bytes.append(matrix)
-
 
     encrypted_bytes = flatten_bytes(encrypted_bytes)
     encrypted_bytes = writeToFile(encrypted_bytes, outputfile)
 
+
 def decryption(hex, all_keys, outputfile):
     round_numbers = len(all_keys)
-    decrypted_bytes = [] # store all the encrypted matrix
+    decrypted_bytes = []  # store all the encrypted matrix
     all_keys = list(reversed(all_keys))
 
     for sixteen in hex:
@@ -410,7 +432,6 @@ def decryption(hex, all_keys, outputfile):
 
             matrix = mix_columns_decrypt(matrix)
 
-
         matrix = shift_rows_decrypt(matrix)
 
         matrix = sub_bytes_decrypt(matrix)
@@ -423,7 +444,6 @@ def decryption(hex, all_keys, outputfile):
 
     decrypted_bytes = remove_pad(decrypted_bytes)
     decrypted_bytes = writeToFile(decrypted_bytes, outputfile)
-
 
 
 # -------- Main Method -------------
@@ -439,19 +459,16 @@ def main():
     if(arguments['mode'] == 'encrypt'):
         hex = padding(hex)
 
-
-    # # mock the hex 
+    # # mock the hex
     # hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
     # hex = [['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
     # hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF']]
 
     # input the key
-    # Checking if the key is 
     key = read_key_input(arguments["keyfile"])
 
     # split the bytes
     key = split_key_bytes(key)
-
 
     # # mock the keys
     # key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
@@ -469,18 +486,10 @@ def main():
     if arguments["mode"] == "encrypt":
         encryption(hex, all_keys, arguments["outputfile"])
 
-
     elif arguments["mode"] == "decrypt":
         # print("here", arguments)
         decryption(hex, all_keys, arguments["outputfile"])
 
 
-    
 if __name__ == "__main__":
-  main()
-
-
-
-
-
-
+    main()
