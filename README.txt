@@ -53,10 +53,20 @@ shift rows:
 -This is simply shifting rows based on the index. Pretty easy to implement, and pretty easy to reverse. simply use [:] to grab all elements in a row, and [i:] elements past index i
 
 
-
 Sub bytes:
+
 -based on a byte in the matrix on 16 bytes, we use that byte to index into tables.py, sTables. This table is the table that is used to substitute bytes, also used in key expansion. The byte is converted into an index, and the table contains the substitute byte.
 -The opposite is not bad, we just look for the index that contains the already substituted byte. We then swap the sub byte with its index
+
+Add Round key:
+
+-add round key is just xor-ing a specific round key from key expansion, and the 16 bytes.
+-for decrypting, we do the same process, xor-ing it again reverts to the pre add round key 16 bytes
+
+Mix Columns:
+-shit idk man
+
+
 
 
 
