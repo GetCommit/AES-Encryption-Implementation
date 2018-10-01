@@ -46,3 +46,28 @@ Again, our AES decryption follows close pseudo code from the NIST document.
 
 _______________________________________________________________________________________
 
+ideas/parts of the cipher:
+
+shift rows:
+
+-This is simply shifting rows based on the index. Pretty easy to implement, and pretty easy to reverse. simply use [:] to grab all elements in a row, and [i:] elements past index i
+
+
+
+Sub bytes:
+-based on a byte in the matrix on 16 bytes, we use that byte to index into tables.py, sTables. This table is the table that is used to substitute bytes, also used in key expansion. The byte is converted into an index, and the table contains the substitute byte.
+-The opposite is not bad, we just look for the index that contains the already substituted byte. We then swap the sub byte with its index
+
+
+
+
+
+
+
+
+
+
+
+
+
+
