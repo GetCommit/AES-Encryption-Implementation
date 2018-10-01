@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-cmd="python aes.py"
+cmd="python3 aes.py"
 
 set -e
 # Comment in the below line to see tester output
-set -x
+# set -x
 
 for i in `seq 1 64`;
 do

@@ -6,6 +6,8 @@ To run the program:
 
 python aes.py --keysize $KEYSIZE --keyfile $KEYFILE --inputfile $INPUTFILE--outputfile$OUTFILENAME --mode $MODE
 
+Files: aes.py, tables.py
+
 keysize is 128 or 256
 keyfile is a file that acts as the key
 inputfile is the file to encrypt
@@ -64,9 +66,8 @@ Add Round key:
 -for decrypting, we do the same process, xor-ing it again reverts to the pre add round key 16 bytes
 
 Mix Columns:
--shit idk man
-
-
+- the tables.py is an object that contains all the look up tables needed for this assignment. For mix columns, the table also includes galois fields (2D List) for both encryptionand decryption. 
+- Perform matrix multiplication (except you xor the results instead of adding) using th galois matrix and each 16 bytes of inputs. Use corresponding galois table for fast access of the product. 
 
 
 
