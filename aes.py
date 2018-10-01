@@ -57,11 +57,11 @@ def xorLists(a, b):
 
 
 def col_by_idx(matrix, idx):
-    l = []
+    column = []
     for i in range(len(matrix)):
-        l.append(matrix[i][idx])
+        column.append(matrix[i][idx])
 
-    return l
+    return column
 
 # def matrix_to_hex(matrix):
 #     for row in matrix:
@@ -202,20 +202,20 @@ def mix_columns_encrypt(matrix):
             gal = galois[i]
 
             # get the product
-            l = []
+            column = []
             for k in range(len(col)):
                 which_table = gal[k]
                 if(which_table == 1):
-                    l.append(col[k])
+                    column.append(col[k])
                 elif(which_table == 2):
                     table = tables.mul2
-                    l.append(table[col[k]])
+                    column.append(table[col[k]])
                 else:
                     table = tables.mul3
-                    l.append(table[col[k]])
-            final_value = l[0]
-            for z in range(1, len(l)):
-                final_value = final_value ^ l[z]
+                    column.append(table[col[k]])
+            final_value = column[0]
+            for z in range(1, len(column)):
+                final_value = final_value ^ column[z]
             new_matrix[i][j] = final_value
 
     return new_matrix
@@ -232,32 +232,32 @@ def mix_columns_decrypt(matrix):
             gal = galois[i]
 
             # get the product
-            l = []
+            column = []
             for k in range(len(col)):
                 which_table = gal[k]
                 if(which_table == 9):
                     table = tables.mul9
-                    l.append(table[col[k]])
+                    column.append(table[col[k]])
                 elif(which_table == 11):
                     table = tables.mul11
-                    l.append(table[col[k]])
+                    column.append(table[col[k]])
                 elif(which_table == 13):
                     table = tables.mul13
-                    l.append(table[col[k]])
+                    column.append(table[col[k]])
                 else:
                     table = tables.mul14
-                    l.append(table[col[k]])
-            final_value = l[0]
-            for z in range(1, len(l)):
-                final_value = final_value ^ l[z]
+                    column.append(table[col[k]])
+            final_value = column[0]
+            for z in range(1, len(column)):
+                final_value = final_value ^ column[z]
             new_matrix[i][j] = final_value
 
     return new_matrix
 
 
 def rot_word(l):
-    l = [l[1], l[2], l[3], l[0]]
-    return l
+    rotate = [l[1], l[2], l[3], l[0]]
+    return rotate
 
 
 def subword(l):
@@ -268,9 +268,9 @@ def subword(l):
 
 
 def rcon(i):
-    l = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54]
+    constant = [1, 2, 4, 8, 16, 32, 64, 128, 27, 54]
 
-    return [l[i], 0, 0, 0]
+    return [constant[i], 0, 0, 0]
 
 
 def key_expansion(key, key_size):
@@ -291,13 +291,21 @@ def key_expansion(key, key_size):
 
     i = nk
     while(i < 4*(round+1)):
-        temp = [expanded_key[0][i - 1], expanded_key[1][i - 1], expanded_key[2][i - 1], expanded_key[3][i - 1]]
+        temp = []
+        temp.append(expanded_key[0][i - 1])
+        temp.append(expanded_key[1][i - 1])
+        temp.append(expanded_key[2][i - 1])
+        temp.append(expanded_key[3][i - 1])
         if(i % nk == 0):
             temp = xorLists(subword(rot_word(temp)), rcon(int(i / nk) - 1))
         elif (nk > 6 and i % nk == 4):
             temp = subword(temp)
 
-        wi_sub_nk = [expanded_key[0][i-nk], expanded_key[1][i - nk], expanded_key[2][i - nk], expanded_key[3][i - nk]]
+        wi_sub_nk = [expanded_key[0][i-nk]]
+        wi_sub_nk.append(expanded_key[1][i - nk])
+        wi_sub_nk.append(expanded_key[2][i - nk])
+        wi_sub_nk.append(expanded_key[3][i - nk])
+
         wi = xorLists(wi_sub_nk, temp)
         # append to expanded_key
         for idx in range(len(expanded_key)):
@@ -360,8 +368,6 @@ def flatten_bytes(encryted_bytes):
         for j in range(len(matrix[0])):
             for i in range(len(matrix)):
                 encryted_bytes_remove_padding.append(matrix[i][j])
-
-    # encryted_bytes_remove_padding = encryted_bytes_remove_padding[0:file_size]
 
     return encryted_bytes_remove_padding
 
@@ -453,26 +459,16 @@ def main():
     # input the data and padding it.
     hex = read_input(arguments["inputfile"])
     # file_size = obtain_file_size(hex)
-    # hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF']]
 
     hex = splitting(hex)
     if(arguments['mode'] == 'encrypt'):
         hex = padding(hex)
-
-    # # mock the hex
-    # hex = [['32', '43', 'f6', 'a8', '88', '5a', '30', '8d', '31', '31', '98', 'a2', 'e0', '37', '07', '34'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
-    # hex = [['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00'], ['16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16', '16']]
-    # hex = [['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF']]
 
     # input the key
     key = read_key_input(arguments["keyfile"])
 
     # split the bytes
     key = split_key_bytes(key)
-
-    # # mock the keys
-    # key = [['2b', '28', 'ab', '09'], ['7e', 'ae', 'f7', 'cf'], ['15', 'd2', '15', '4f'], ['16', 'a6', '88', '3c']]
-    # key = [['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00'], ['00', '00', '00', '00']]
 
     # expanded the key
     key_size = arguments["keysize"]
