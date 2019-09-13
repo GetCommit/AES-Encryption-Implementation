@@ -1,7 +1,5 @@
 AES
 
-Collaborators: Wenyuan Wu(ww6767), Brandon Chan(Bec944), Yaoyang Liu(yl27488)
-
 To run the program:
 
 python aes.py --keysize $KEYSIZE --keyfile $KEYFILE --inputfile $INPUTFILE--outputfile$OUTFILENAME --mode $MODE
